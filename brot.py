@@ -1,5 +1,6 @@
 import sys
 import threading
+from Queue import Queue
 
 from PIL import Image
 
@@ -50,12 +51,33 @@ def subregion(region_x, region_y, size):
             if iterations == MAX_ITER:
                 render(point)
 
+class Worker(threading.Thread):
+    def __init__(self, job_q):
+        super(Worker, self).__init__()
+        self.job_q = job_q
+
+    def run(self):
+        while True:
+            job = self.job_q.get()
+            if job is None:
+                return
+            x, y, region_size = job
+            subregion(x, y, region_size)
+
 
 def main():
+    job_q = Queue()
+    workers = [Worker(job_q) for _ in xrange(WORKERS)]
+    [w.start() for w in workers]
     region_size = 64
     for x in xrange(0, SIZE+1, region_size):
         for y in xrange(0, SIZE+1, region_size):
-            subregion(x, y, region_size)
+            # subregion(x, y, region_size)
+            job_q.put((x, y, region_size))
+    for _ in xrange(WORKERS):
+        job_q.put(None)
+    for worker in workers:
+        worker.join()
     img.save("brot.bmp", "BMP")
 
 
