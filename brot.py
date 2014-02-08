@@ -1,10 +1,12 @@
 import sys
+import threading
 
 from PIL import Image
 
 
 SIZE = 1023
 MAX_ITER = 100
+WORKERS = 8
 
 
 img = Image.new("RGB", (SIZE+1, SIZE+1))
@@ -40,20 +42,22 @@ def brot_orbit(point):
     return iterations
 
 
-def main():
-    for x in xrange(SIZE +1):
-        for y in xrange(SIZE +1):
+def subregion(region_x, region_y, size):
+    for x in xrange(region_x, region_x+size):
+        for y in xrange(region_y, region_y+size):
             point = carthesiza_2_complex((x, y))
             iterations = brot_orbit(point)
             if iterations == MAX_ITER:
                 render(point)
-        #         sys.stdout.write(".")
-        #         sys.stdout.flush()
-        #     else:
-        #         sys.stdout.write(" ")
-        #         sys.stdout.flush()
-        # print
+
+
+def main():
+    region_size = 64
+    for x in xrange(0, SIZE+1, region_size):
+        for y in xrange(0, SIZE+1, region_size):
+            subregion(x, y, region_size)
     img.save("brot.bmp", "BMP")
+
 
 if __name__ == "__main__":
     main()
