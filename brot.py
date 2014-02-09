@@ -1,6 +1,5 @@
 import sys
-import threading
-from Queue import Queue
+import multiprocessing
 
 from PIL import Image
 
@@ -8,9 +7,6 @@ from PIL import Image
 SIZE = 1023
 MAX_ITER = 100
 WORKERS = 8
-
-
-img = Image.new("RGB", (SIZE+1, SIZE+1))
 
 
 def carthesiza_2_complex(point):
@@ -27,11 +23,13 @@ def complex_2_carthesian(point):
     return x, y
 
 
-def render(point):
+def render(x, y, img):
     # if (0 <= x < SIZE) and (0 <= y < SIZE):
-    x, y = complex_2_carthesian(point)
     # pixel_value = img.getpixel((x, y))[0] + 1
-    img.putpixel((x, y), (255, 255, 255))
+    try:
+        img.putpixel((x, y), (255, 255, 255))
+    except:
+        print x, y
 
 
 def brot_orbit(point):
@@ -43,15 +41,16 @@ def brot_orbit(point):
     return iterations
 
 
-def subregion(region_x, region_y, size):
+def subregion(region_x, region_y, size, img):
     for x in xrange(region_x, region_x+size):
         for y in xrange(region_y, region_y+size):
             point = carthesiza_2_complex((x, y))
             iterations = brot_orbit(point)
             if iterations == MAX_ITER:
-                render(point)
+                render((x-region_x), (y-region_y), img)
 
-class Worker(threading.Thread):
+
+class Worker(multiprocessing.Process):
     def __init__(self, job_q):
         super(Worker, self).__init__()
         self.job_q = job_q
@@ -62,11 +61,13 @@ class Worker(threading.Thread):
             if job is None:
                 return
             x, y, region_size = job
-            subregion(x, y, region_size)
+            img = Image.new("RGB", (region_size, region_size))
+            subregion(x, y, region_size, img)
+            img.save("brot{}_{}.bmp".format(x,y), "BMP")
 
 
 def main():
-    job_q = Queue()
+    job_q = multiprocessing.Queue()
     workers = [Worker(job_q) for _ in xrange(WORKERS)]
     [w.start() for w in workers]
     region_size = 64
@@ -78,7 +79,7 @@ def main():
         job_q.put(None)
     for worker in workers:
         worker.join()
-    img.save("brot.bmp", "BMP")
+    # img.save("brot.bmp", "BMP")
 
 
 if __name__ == "__main__":
