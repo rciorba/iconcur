@@ -18,16 +18,8 @@ def carthesiza_2_complex(point):
     y = (-1.5 + (y/size)*3)
     return complex(x, y)
 
-def complex_2_carthesian(point):
-    x = int((point.real+2)/3 * SIZE)
-    y = int((point.imag+1.5)/3 * SIZE)
-    return x, y
-
 
 def render(x, y):
-    # if (0 <= x < SIZE) and (0 <= y < SIZE):
-    # x, y = complex_2_carthesian(point)
-    # pixel_value = img.getpixel((x, y))[0] + 1
     img.putpixel((x, y), (255, 255, 255))
 
 
@@ -47,12 +39,6 @@ def main():
             iterations = brot_orbit(point)
             if iterations == MAX_ITER:
                 render(x, y)
-        #         sys.stdout.write(".")
-        #         sys.stdout.flush()
-        #     else:
-        #         sys.stdout.write(" ")
-        #         sys.stdout.flush()
-        # print
     img.save("brot.bmp", "BMP")
 
 if __name__ == "__main__":
