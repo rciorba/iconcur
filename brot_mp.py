@@ -26,10 +26,7 @@ def complex_2_carthesian(point):
 def render(x, y, img):
     # if (0 <= x < SIZE) and (0 <= y < SIZE):
     # pixel_value = img.getpixel((x, y))[0] + 1
-    try:
-        img.putpixel((x, y), (255, 255, 255))
-    except:
-        print x, y
+    img.putpixel((x, y), (255, 255, 255))
 
 
 def brot_orbit(point):
